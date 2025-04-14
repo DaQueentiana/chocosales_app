@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
+
 def load_data():
         df = pd.read_csv("Chocosales.csv")
         # convert date column to datetype datatype
@@ -23,7 +24,7 @@ filters = {
         "Product": df["Product"],
 }
 
-# stor user selection
+# store user selection
 selected_filters = {}
 
 # generate multi-selec widgets dynamically
@@ -81,3 +82,70 @@ chart1 = alt.Chart(top_products).mark_bar().encode(
 
 # display the chart
 st.altair_chart(chart1, use_container_width=True)
+
+# Chart 2
+st.subheader("Countries with the Largest Revenue")
+Sales_by_Country = filtered_df.groupby("Country")["Amount"].sum().nlargest(8).reset_index()
+st.write(Sales_by_Country)
+
+st.subheader("Sales by Country")
+#Creating apie chart 
+chart2 =alt.Chart(Sales_by_Country).mark_arc().encode(
+        theta=alt.Theta('Amount:Q'),
+        color=alt.Color("Country:N"),
+        tooltip=["Country",'Amount']
+).properties(height=300,width=300,
+             title="Sales y 6 different Countries"
+             )
+#display the pie Chart
+st.altair_chart(chart2,use_container_width=True)
+
+# Chart 3
+st.subheader("Sales Person with the Largest Revenue")
+Sales_Persons = filtered_df.groupby("Sales Person")["Amount"].sum().nlargest(10).reset_index()
+st.write(Sales_Persons)
+
+st.subheader("Top 10 Sales Person by Revenue")
+# create the bar chart
+chart3=alt.Chart(Sales_Persons).mark_bar().encode(
+y=alt.Y('Amount:Q', title="Revenue ($)"),
+x=alt.X("Sales Person:N"),
+color=alt.Color("Sales Person:N",legend=None)
+).properties(height=600)
+
+#display the chart
+st.altair_chart(chart3,use_container_width=True)
+
+#Monthly Sales Trend
+import streamlit as st
+import pandas as pd
+import altair as alt
+
+def load_data():
+        df= pd.read_csv("Chocosales.csv")
+        # convert Dale col to tatetime datatype
+        df.Date= pd.to_datetime(df.Date,format="%d-%b-%y").sort_values()
+        df.Month= df.Date.dt.strftime("%b")
+        # convert Amount Col to Float datatype
+        df.Amount=df.Amount.str.replace("$","").str.replace(",","").str.strip().astype("float")
+        return df
+df=load_data()
+st.subheader("Monthly Sale Trend")
+Monthly_Sales = filtered_df.groupby(df.Month)['Amount'].sum().reset_index()
+st.write(Monthly_Sales)
+
+
+# Creating a line graph between  Months and Revenue
+chart4 = alt.Chart(Monthly_Sales).mark_line(point=True).encode(
+        x=alt.X('Date',title="Months"),
+        y=alt.Y('Amount',title="Revenue($)")
+).properties(
+        width=400,
+        height=500,
+        title='Monthly Sales Revenue'
+)
+#Show the line chart
+st.altair_chart(chart4,use_container_width=True)
+
+
+
